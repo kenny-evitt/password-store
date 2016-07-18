@@ -55,7 +55,9 @@ _pass () {
 					"-f[force overwrite]" \
 					"--force[force overwrite]" \
 					"-i[replace first line]" \
-					"--in-place[replace first line]"
+					"--in-place[replace first line]" \
+					"-e[open editor]" \
+					"--edit[open editor]"
 				_pass_complete_entries_with_subdirs
 				;;
 			cp|copy|mv|rename)

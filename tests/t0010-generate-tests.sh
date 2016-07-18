@@ -16,4 +16,13 @@ test_expect_success 'Test replacement of first line' '
 	[[ $("$PASS" show cred2) == "$(printf "This is a fake password\\npassword\\nwith\\nmany\\nlines\\nin it bla bla")" ]]
 '
 
+test_expect_success 'Test "generate" command with --edit flag' '
+        "$PASS" init $KEY1
+        export FAKE_EDITOR_PASSWORD="big fat fake password" &&
+        export PATH="$TEST_HOME:$PATH"
+        export EDITOR="fake-editor-change-password.sh" &&
+        "$PASS" generate -e cred3 90 &&
+        [[ $("$PASS" show cred3) == "$FAKE_EDITOR_PASSWORD" ]]
+'
+
 test_done

@@ -111,7 +111,7 @@ ensure that temporary files are created in \fI/dev/shm\fP in order to avoid writ
 difficult-to-erase disk sectors. If \fI/dev/shm\fP is not accessible, fallback to
 the ordinary \fITMPDIR\fP location, and print a warning.
 .TP
-\fBgenerate\fP [ \fI--no-symbols\fP, \fI-n\fP ] [ \fI--clip\fP, \fI-c\fP ] [ \fI--in-place\fP, \fI-i\fP | \fI--force\fP, \fI-f\fP ] \fIpass-name [pass-length]\fP
+\fBgenerate\fP [ \fI--no-symbols\fP, \fI-n\fP ] [ \fI--clip\fP, \fI-c\fP ] [ \fI--in-place\fP, \fI-i\fP | \fI--force\fP, \fI-f\fP | \fI--edit\fP, \fI-e\fP ] \fIpass-name [pass-length]\fP
 Generate a new password using
 .BR pwgen (1)
 of length \fIpass-length\fP (or \fIPASSWORD_STORE_GENERATED_LENGTH\fP if unspecified)
@@ -125,6 +125,7 @@ Prompt before overwriting an existing password,
 unless \fI--force\fP or \fI-f\fP is specified. If \fI--in-place\fP or \fI-i\fP is
 specified, do not interactively prompt, and only replace the first line of the password
 file with the new generated password, keeping the remainder of the file intact.
+With \fI--edit\fP or \fI-e\fP open file in editor after generating the password.
 .TP
 \fBrm\fP [ \fI--recursive\fP, \fI-r\fP ] [ \fI--force\fP, \fI-f\fP ] \fIpass-name\fP
 Remove the password named \fIpass-name\fP from the password store. This command is
