@@ -16,6 +16,7 @@ PREFIX="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
 X_SELECTION="${PASSWORD_STORE_X_SELECTION:-clipboard}"
 CLIP_TIME="${PASSWORD_STORE_CLIP_TIME:-45}"
 GENERATED_LENGTH="${PASSWORD_STORE_GENERATED_LENGTH:-25}"
+DEFAULT_SYMBOLS="${PASSWORD_STORE_DEFAULT_SYMBOLS:-\!\"#\$%&\'()*+,-./:;<=>?@[\]^_\`{|\}~}"
 
 export GIT_DIR="${PASSWORD_STORE_GIT:-$PREFIX}/.git"
 export GIT_WORK_TREE="${PASSWORD_STORE_GIT:-$PREFIX}"
@@ -235,8 +236,8 @@ cmd_usage() {
 	        overwriting existing password unless forced.
 	    $PROGRAM edit pass-name
 	        Insert a new password or edit an existing password using ${EDITOR:-vi}.
-	    $PROGRAM generate [--no-symbols,-n] [--clip,-c] [--in-place,-i | --force,-f] pass-name [pass-length]
-	        Generate a new password of pass-length (or $GENERATED_LENGTH if unspecified) with optionally no symbols.
+	    $PROGRAM generate [--clip,-c] [--in-place,-i | --force,-f] pass-name [pass-length] [symbols]
+	        Generate a new password of pass-length (or $GENERATED_LENGTH if unspecified) with optional set of symbols to use (or $DEFAULT_SYMBOLS if unspecified).
 	        Optionally put it on the clipboard and clear board after $CLIP_TIME seconds.
 	        Prompt before overwriting existing password unless forced.
 	        Optionally replace only the first line of an existing file with a new password.
@@ -431,21 +432,21 @@ cmd_edit() {
 }
 
 cmd_generate() {
-	local opts clip=0 force=0 symbols="-y" inplace=0
-	opts="$($GETOPT -o ncif -l no-symbols,clip,in-place,force -n "$PROGRAM" -- "$@")"
+	local opts clip=0 force=0 inplace=0
+	opts="$($GETOPT -o cif -l clip,in-place,force -n "$PROGRAM" -- "$@")"
 	local err=$?
 	eval set -- "$opts"
 	while true; do case $1 in
-		-n|--no-symbols) symbols=""; shift ;;
 		-c|--clip) clip=1; shift ;;
 		-f|--force) force=1; shift ;;
 		-i|--in-place) inplace=1; shift ;;
 		--) shift; break ;;
 	esac done
 
-	[[ $err -ne 0 || ( $# -ne 2 && $# -ne 1 ) || ( $force -eq 1 && $inplace -eq 1 ) ]] && die "Usage: $PROGRAM $COMMAND [--no-symbols,-n] [--clip,-c] [--in-place,-i | --force,-f] pass-name [pass-length]"
+	[[ $err -ne 0 || ( $# -ne 3 && $# -ne 2 && $# -ne 1 ) || ( $force -eq 1 && $inplace -eq 1 ) ]] && die "Usage: $PROGRAM $COMMAND [--clip,-c] [--in-place,-i | --force,-f] pass-name [pass-length] [symbols]"
 	local path="$1"
 	local length="${2:-$GENERATED_LENGTH}"
+	local symbols="${3:-$DEFAULT_SYMBOLS}"
 	check_sneaky_paths "$path"
 	[[ ! $length =~ ^[0-9]+$ ]] && die "Error: pass-length \"$length\" must be a number."
 	mkdir -p -v "$PREFIX/$(dirname "$path")"
@@ -454,7 +455,7 @@ cmd_generate() {
 
 	[[ $inplace -eq 0 && $force -eq 0 && -e $passfile ]] && yesno "An entry already exists for $path. Overwrite it?"
 
-	local pass="$(pwgen -s $symbols $length 1)"
+	local pass="$(head /dev/urandom | tr -dc "A-Za-z0-9$symbols" | head -c "$length" && echo)"
 	[[ -n $pass ]] || exit 1
 	if [[ $inplace -eq 0 ]]; then
 		$GPG -e "${GPG_RECIPIENT_ARGS[@]}" -o "$passfile" "${GPG_OPTS[@]}" <<<"$pass" || die "Password encryption aborted."
